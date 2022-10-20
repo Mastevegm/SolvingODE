@@ -16,7 +16,7 @@ class ODEsolver(Sequential):
      def train_step(self, data):
          # Unpack the data. Its structure depends on your model and
          # on what you pass to `fit()`.
-         x = tf.random.uniform((100, 1), minval=-2, maxval=2)
+         x = tf.random.uniform((80, 1), minval=-5, maxval=5)
 
          with tf.GradientTape() as tape:
              # Compute the loss value
@@ -24,10 +24,10 @@ class ODEsolver(Sequential):
                  tape2.watch(x)
                  y_pred = self(x, training=True)
              dy = tape2.gradient(y_pred, x)
-             x_o = tf.zeros((100, 1))
+             x_o = tf.zeros((80, 1))
              y_o = self(x_o, training=True)
-             eq = dy + 2.*x*y_pred
-             ic = y_o - 1.
+             eq = x*dy + y_pred - x**2*keras.backend.cos(x)
+             ic = y_o
              loss = keras.losses.mean_squared_error(0., eq) + keras.losses.mean_squared_error(0., ic)
 
         # Compute gradients
@@ -61,10 +61,10 @@ model.summary()
 
 model.compile(optimizer=RMSprop(), metrics=['loss'])
 
-x = tf.linspace(-2, 2, 100)
+x = tf.linspace(-5, 5, 100)
 history = model.fit(x, epochs=500, verbose=1)
 
-x_testv = tf.linspace(-2, 2, 100)
+x_testv = tf.linspace(-5, 5, 100)
 a = model.predict(x_testv)
 plt.plot(x_testv, a)
 plt.plot(x_testv, np.exp(-x*x))
